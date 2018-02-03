@@ -1,7 +1,7 @@
 var fs = require('fs')
 var bodyParser = require('body-parser')
 var https = require('https')
-var mysql = require('mysql'); 
+var mysql = require('sqlite3').verbose(); 
 var express = require('express')
 var helmet = require('helmet')
 var winston = require('winston')
@@ -17,13 +17,7 @@ const port = process.env.PORT || 8080;
 
 var authenticationCache = []
 
-//var db = new sqlite3.Database(sqliteFile); 
-var db = mysql.createConnection({
-  host: process.env.mysql_host,
-  user: process.env.mysql_user,
-  password: process.env.mysql_pass,
-  database: process.env.mysql_name
-});
+var db = new sqlite3.Database(sqliteFile); 
 
 if (!fs.existsSync("log")){
     fs.mkdirSync("log");
