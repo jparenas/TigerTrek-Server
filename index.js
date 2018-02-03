@@ -1,7 +1,7 @@
 var fs = require('fs')
 var bodyParser = require('body-parser')
 var https = require('https')
-var mysql = require('sqlite3').verbose(); 
+var sqlite3 = require('sqlite3').verbose(); 
 var express = require('express')
 var helmet = require('helmet')
 var winston = require('winston')
@@ -13,10 +13,11 @@ app.use(helmet())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 
 var authenticationCache = []
 
+var sqliteFile = "tigerdatabase.sqlite3";
 var db = new sqlite3.Database(sqliteFile); 
 
 if (!fs.existsSync("log")){
@@ -58,10 +59,11 @@ logger.stream = {
     }
 };
 
+/*
 db.connect(function(err) {
   if (err) throw err;
   logger.info("Connected to the database.");
-});
+});*/
 
 app.use(require("morgan")("tiny", { "stream": logger.stream }));
 
