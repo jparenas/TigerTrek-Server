@@ -197,6 +197,7 @@ app.post('/login', function (req, res) {
     data = req.body
   }
   token = data.token
+  res.set("Connection", "close");
   authenticate(token, function (user) {
     if (user.authenticated) {
       db.get("SELECT * FROM user WHERE email == ?", user.data["email"], function(err, row) {
@@ -218,7 +219,6 @@ app.post('/login', function (req, res) {
     } else {
       res.sendStatus(401);
     }
-    res.end();
   })
 })
 
@@ -257,6 +257,7 @@ app.post('/register', function (req, res) {
   } catch(err) {
     data = req.body
   }
+  res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
       names = ["height", "weight", "hair", "eye", "house", "room", "allergies", "medications", "contact"]
@@ -278,7 +279,6 @@ app.post('/register', function (req, res) {
       } else {
         res.sendStatus(401);
       }
-      res.end();
   })
 })
 
@@ -310,6 +310,7 @@ app.post('/emergency', function (req, res) {
   } catch(err) {
     data = req.body
   }
+  res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
       if (data["latitude"] && data ["longitude"]) {
@@ -325,7 +326,6 @@ app.post('/emergency', function (req, res) {
         })
       }
     }
-    res.end();
   })
 })
 
@@ -364,6 +364,7 @@ app.post('/request', function (req, res) {
   } catch(err) {
     data = req.body
   }
+  res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
       db.serialize(function() {
@@ -373,7 +374,6 @@ app.post('/request', function (req, res) {
         })
       })
     }
-    res.end();
   })
 })
 
@@ -410,6 +410,7 @@ app.post('/update', function (req, res) {
   } catch(err) {
     data = req.body
   }
+  res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated && user.data["email"] == data["email"]) {
       db.serialize(function() {
@@ -428,7 +429,6 @@ app.post('/update', function (req, res) {
       })
       logger.info("Updated information of " + data["email"])
     }
-    res.end();
   })
 })
 
@@ -456,12 +456,12 @@ app.post('/cancel', function (req, res) {
     data = req.body
     log(err)
   }
+  res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
       db.run("DELETE FROM queue WHERE email = ?", data["email"])
       logger.info("Canceled emergency from " + data["email"])
     }
-    res.end();
   })
 })
 
@@ -489,6 +489,7 @@ app.post('/get-queue', function (req, res) {
     data = req.body
     log(err)
   }
+  res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
       var jsonTable = {"data":[]}
@@ -505,7 +506,6 @@ app.post('/get-queue', function (req, res) {
         })
       })
     }
-    res.end();
   })
 })
 
@@ -548,6 +548,7 @@ app.post('/request-emergency', function (req, res) {
     data = req.body
     log(err)
   }
+  res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
       db.serialize(function() {
@@ -561,7 +562,6 @@ app.post('/request-emergency', function (req, res) {
       })
       logger.info("Requested emergency data from " + data["email"] + " by " + user.data["email"])
     }
-    res.end();
   })
 })
 
