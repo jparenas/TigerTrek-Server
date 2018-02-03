@@ -218,6 +218,7 @@ app.post('/login', function (req, res) {
     } else {
       res.sendStatus(401);
     }
+    res.end();
   })
 })
 
@@ -277,6 +278,7 @@ app.post('/register', function (req, res) {
       } else {
         res.sendStatus(401);
       }
+      res.end();
   })
 })
 
@@ -323,6 +325,7 @@ app.post('/emergency', function (req, res) {
         })
       }
     }
+    res.end();
   })
 })
 
@@ -370,6 +373,7 @@ app.post('/request', function (req, res) {
         })
       })
     }
+    res.end();
   })
 })
 
@@ -424,6 +428,7 @@ app.post('/update', function (req, res) {
       })
       logger.info("Updated information of " + data["email"])
     }
+    res.end();
   })
 })
 
@@ -456,6 +461,7 @@ app.post('/cancel', function (req, res) {
       db.run("DELETE FROM queue WHERE email = ?", data["email"])
       logger.info("Canceled emergency from " + data["email"])
     }
+    res.end();
   })
 })
 
@@ -499,6 +505,7 @@ app.post('/get-queue', function (req, res) {
         })
       })
     }
+    res.end();
   })
 })
 
@@ -554,6 +561,7 @@ app.post('/request-emergency', function (req, res) {
       })
       logger.info("Requested emergency data from " + data["email"] + " by " + user.data["email"])
     }
+    res.end();
   })
 })
 
