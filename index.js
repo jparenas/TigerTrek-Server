@@ -13,7 +13,7 @@ app.use(helmet())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const port = 3306
+const port = process.env.PORT || 8080;
 
 var authenticationCache = []
 
