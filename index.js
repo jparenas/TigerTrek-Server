@@ -319,7 +319,7 @@ app.post('/emergency', function (req, res) {
       if (data["latitude"] && data ["longitude"]) {
         db.query("SELECT * FROM queue WHERE email = ?", [data["email"]], function(err, row, _fields) {
           if (row.length == 0) {
-            db.query("INSERT INTO queue VALUES (?,?,?,?,?)", [data["email"], data["name"], data["latitude"], data["longitude"], Date.now()], function (_err, _row, _fields) {
+            db.query("INSERT INTO queue (email, name, latitude, longitude, time) VALUES (?,?,?,?,?)", [data["email"], data["name"], data["latitude"], data["longitude"], Date.now()], function (_err, _row, _fields) {
               logger.info("Emergency reported at lat:" + data["latitude"] + " lon:" + data["longitude"] + " by " + user.data["email"], req.ip, hrstart);
             }) 
           } else {
