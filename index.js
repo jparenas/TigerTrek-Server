@@ -275,7 +275,7 @@ app.post('/register', function (req, res) {
           }
         }
       }
-      db.query("INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)", [data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]], function (err, _row, _fields) {
+      db.query("INSERT INTO user (email, name, height, weight, hair, eye, house, room, allergies, medications, contact) VALUES (?,?,?,?,?,?,?,?,?,?,?)", [data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]], function (err, _row, _fields) {
         logger.info("Registered email " + user.data["email"])
         res.json({"userRegistered": true});
       }) 
@@ -429,7 +429,7 @@ app.post('/update', function (req, res) {
             }
           }
         }
-        db.query("INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)", [data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]], function (_err, _row, _fields) {
+        db.query("INSERT INTO user (email, name, height, weight, hair, eye, house, room, allergies, medications, contact) VALUES (?,?,?,?,?,?,?,?,?,?,?)", [data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]], function (_err, _row, _fields) {
           logger.info("Updated information of " + data["email"]);
           res.end();
         })
