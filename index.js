@@ -1,7 +1,9 @@
+require('dotenv').config()
 var fs = require('fs')
 var bodyParser = require('body-parser')
 var https = require('https')
-var sqlite3 = require('sqlite3').verbose(); 
+// var sqlite3 = require('sqlite3').verbose(); 
+var mysql = require('mysql'); 
 var express = require('express')
 var helmet = require('helmet')
 var winston = require('winston')
@@ -10,18 +12,15 @@ var morgan = require('morgan')
 var app = express()
 
 app.use(helmet())
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
 const port = process.env.PORT || 3000;
 
 var authenticationCache = []
 
-var sqliteFile = "tigerdatabase.sqlite3";
-var db = new sqlite3.Database(sqliteFile); 
-
 if (!fs.existsSync("log")){
-    fs.mkdirSync("log");
+    fs.mkdirSync("log")
 }
 
 var logger = new winston.Logger({
@@ -36,7 +35,7 @@ var logger = new winston.Logger({
             colorize: false,
             timestamp:function() {
               var date = new Date()
-              return date.toLocaleString();
+              return date.toLocaleString()
             }
         }),
         new winston.transports.Console({
@@ -46,7 +45,7 @@ var logger = new winston.Logger({
             colorize: true,
             timestamp:function() {
               var date = new Date()
-              return date.toLocaleString();
+              return date.toLocaleString()
             }
         })
     ],
@@ -55,17 +54,21 @@ var logger = new winston.Logger({
 
 logger.stream = {
     write: function(message, encoding){
-        logger.info(message.trim());
+        logger.info(message.trim())
     }
 };
 
-/*
+// var sqliteFile = "tigerdatabase.sqlite3";
+// var db = new sqlite3.Database(sqliteFile); 
+
+var db = mysql.createConnection(process.env.JAWSDB_URL)
+
 db.connect(function(err) {
   if (err) throw err;
-  logger.info("Connected to the database.");
-});*/
+  logger.info("Connected to the database!");
+})
 
-app.use(require("morgan")("tiny", { "stream": logger.stream }));
+app.use(require("morgan")("tiny", { "stream": logger.stream }))
 
 /*
 
@@ -85,7 +88,8 @@ Returns:
 */
 
 function authenticate(token, callback) {
-  for (cache in authenticationCache) {
+  // for (cache in authenticationCache) {
+  for (var cache = 0; cache < authenticationCache.length; i++) {
     if (token == authenticationCache[cache]["id"]) {
       logger.info("Using cached data for " + authenticationCache[cache]["email"])
       callback({
@@ -170,7 +174,7 @@ All the requests need to include the token id, as a security measure. It always 
 
 /*
 
-This page checks if the user has already registered, and whether it is security or it isn't. If the user is part of security, it won't be asked to register. In order to avoid spoofing, it uses the email associated to the token id. 
+This page checks if the user has already registered, and whether it is security or it isn't. If the user is part of security, it won't be asked to register. In order to avoid spoofing, it uses the email associated to the token id as reported by Google. 
 
 Arguments:
 
@@ -200,14 +204,14 @@ app.post('/login', function (req, res) {
   res.set("Connection", "close");
   authenticate(token, function (user) {
     if (user.authenticated) {
-      db.get("SELECT * FROM user WHERE email == ?", user.data["email"], function(err, row) {
-        db.get("SELECT * FROM security WHERE email == ?", user.data["email"], function(securityErr, securityRow) {
-          if (row == undefined && securityRow == undefined) {
+      db.query("SELECT * FROM user WHERE email == ?", [user.data["email"]], function(err, row, _fields) {
+        db.query("SELECT * FROM security WHERE email == ?", [user.data["email"]], function(securityErr, securityRow, _securityFields) {
+          if (row.length == 0 && securityRow.length == 0) {
             log("Registering as " + user.data["email"])
             res.json({"userRegistered": false});
           } else if (row.email == user.data["email"] || securityRow.email == user.data["email"]){
-            if (securityRow == undefined) {
-              security = true
+            if (securityRow.length == 0) {
+              security = false
             } else {
               security = true
             }
@@ -271,14 +275,13 @@ app.post('/register', function (req, res) {
           }
         }
       }
-      db.serialize(function() {
-        db.run("INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)", data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]) 
-      })
-      logger.info("Registered email " + user.data["email"])
-      res.json({"userRegistered": true});
-      } else {
-        res.sendStatus(401);
-      }
+      db.query("INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)", [data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]], function (err, _row, _fields) {
+        logger.info("Registered email " + user.data["email"])
+        res.json({"userRegistered": true});
+      }) 
+    } else {
+      res.sendStatus(401);
+    }
   })
 })
 
@@ -314,12 +317,11 @@ app.post('/emergency', function (req, res) {
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
       if (data["latitude"] && data ["longitude"]) {
-        db.get("SELECT * FROM queue WHERE email == ?", data["email"], function(err, row) {
-          if (row == undefined) {
-            db.serialize(function () {
-              db.run("INSERT INTO queue VALUES (?,?,?,?,?)", data["email"], data["name"], data["latitude"], data["longitude"], Date.now()) 
-            })
-            logger.info("Emergency reported at lat:" + data["latitude"] + " lon:" + data["longitude"] + " by " + user.data["email"], req.ip, hrstart)
+        db.query("SELECT * FROM queue WHERE email == ?", [data["email"]], function(err, row, _fields) {
+          if (row.length == 0) {
+            db.query("INSERT INTO queue VALUES (?,?,?,?,?)", [data["email"], data["name"], data["latitude"], data["longitude"], Date.now()], function (_err, _row, _fields) {
+              logger.info("Emergency reported at lat:" + data["latitude"] + " lon:" + data["longitude"] + " by " + user.data["email"], req.ip, hrstart)
+            }) 
           } else {
             logger.info("Attempted to report emmergency by " + user.data["email"] + " but an emergency has already been logged", req.ip, hrstart)
           }
@@ -367,11 +369,9 @@ app.post('/request', function (req, res) {
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
-      db.serialize(function() {
-        db.get("SELECT * FROM user WHERE email == ?", data["email"], function(err, row) {
-          logger.info("Requested data from " + data["email"] + " by " + user.data["email"])
-          res.json(row)
-        })
+      db.query("SELECT * FROM user WHERE email == ?", [data["email"]], function(err, row, _fields) {
+        logger.info("Requested data from " + data["email"] + " by " + user.data["email"])
+        res.json(row[0])
       })
     }
   })
@@ -413,8 +413,7 @@ app.post('/update', function (req, res) {
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated && user.data["email"] == data["email"]) {
-      db.serialize(function() {
-        db.run("DELETE FROM user WHERE email == ?", data["email"])
+      db.run("DELETE FROM user WHERE email == ?", [data["email"]], function (_err, _row, _fields) {
         names = ["height", "weight", "hair", "eye", "house", "room", "allergies", "medications", "contact"]
         for (name in names) {
           if (!data[names[name]]) {
@@ -425,9 +424,11 @@ app.post('/update', function (req, res) {
             }
           }
         }
-        db.run("INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)", data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"])
+        db.run("INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)", [data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]], function (_err, _row, _fields) {
+          logger.info("Updated information of " + data["email"]);
+          res.end();
+        })
       })
-      logger.info("Updated information of " + data["email"])
     }
   })
 })
@@ -459,8 +460,10 @@ app.post('/cancel', function (req, res) {
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
-      db.run("DELETE FROM queue WHERE email = ?", data["email"])
-      logger.info("Canceled emergency from " + data["email"])
+      db.query("DELETE FROM queue WHERE email = ?", [data["email"]], function (_err, _row, _fields) {
+        logger.info("Canceled emergency from " + data["email"]);
+        res.end();
+      })
     }
   })
 })
@@ -484,26 +487,25 @@ Returns:
 app.post('/get-queue', function (req, res) {
   var hrstart = process.hrtime();
   try {
-    data = JSON.parse(Object.keys(req.body))
+    data = JSON.parse(Object.keys(req.body));
   } catch(err) {
-    data = req.body
-    log(err)
+    data = req.body;
+    logger.error(err);
   }
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
-      var jsonTable = {"data":[]}
-      db.serialize(function() {
-        db.each("SELECT * FROM queue", function (err, row) {
-          jsonTable["data"].push({"email":row.email,
-            "name":row.name,
-            "latitude":row.latitude,
-            "longitude":row.longitude
+      var jsonTable = {"data":[]};
+      db.query("SELECT * FROM queue", function (err, rows, _fields) {
+        for (var i = 0; i < rows.length; i++) {
+          jsonTable["data"].push({"email":rows[i].email,
+            "name":rows[i].name,
+            "latitude":rows[i].latitude,
+            "longitude":rows[i].longitude
           })
-        }, function(err, rows) {
-          res.json(jsonTable)
-          logger.info("Updated queue of " + user.data["email"] + " with a total of " + rows + " items")
-        })
+        };
+        res.json(jsonTable);
+        logger.info("Updated queue of " + user.data["email"] + " with a total of " + rows + " items");
       })
     }
   })
@@ -543,24 +545,22 @@ Returns:
 app.post('/request-emergency', function (req, res) {
   var hrstart = process.hrtime();
   try {
-    data = JSON.parse(Object.keys(req.body))
+    data = JSON.parse(Object.keys(req.body));
   } catch(err) {
     data = req.body
-    log(err)
+    logger.error(err)
   }
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
-      db.serialize(function() {
-        db.get("SELECT * FROM user WHERE email == ?", data["email"], function(err, row) {
-          db.get("SELECT * FROM queue WHERE email == ?", data["email"], function(queueErr, queueRow) {
-            row.latitude = queueRow.latitude
-            row.longitude = queueRow.longitude
-            res.json(row)
-          })
+      db.query("SELECT * FROM user WHERE email == ?", data["email"], function(err, row, _fields) {
+        db.query("SELECT * FROM queue WHERE email == ?", data["email"], function(queueErr, queueRow, _fields) {
+          row[0].latitude = queueRow[0].latitude;
+          row[0].longitude = queueRow[0].longitude;
+          res.json(row[0]);
         })
       })
-      logger.info("Requested emergency data from " + data["email"] + " by " + user.data["email"])
+      logger.info("Requested emergency data from " + data["email"] + " by " + user.data["email"]);
     }
   })
 })
@@ -579,10 +579,12 @@ This function clears the queue. It will remove items that are over 60 minutes ol
 
 function cleanQueue() {
   var count = 0
-  db.each("SELECT * FROM queue", function(err, row) {
-    if (Date.now() - row.time >= 3600000) {
-      db.run("DELETE FROM queue WHERE email = ?", row.email)
-      count++
+  db.query("SELECT * FROM queue", function(err, rows, _fields) {
+    for (var i = 0; i < rows.length; i++) {
+      if (Date.now() - rows[i].time >= 3600000) {
+        db.query("DELETE FROM queue WHERE email = ?", rows[i].email, function (_err, _rows, _fields) {});
+        count++;
+      }
     }
   })
   logger.info("Cleaned " + count + " elements on the queue!")
