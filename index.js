@@ -223,7 +223,6 @@ app.post('/login', function (req, res) {
     } else {
       res.sendStatus(401);
     }
-    res.end();
   })
 })
 
@@ -283,7 +282,6 @@ app.post('/register', function (req, res) {
     } else {
       res.sendStatus(401);
     }
-    res.end();
   })
 })
 
@@ -322,17 +320,17 @@ app.post('/emergency', function (req, res) {
         db.query("SELECT * FROM queue WHERE email = ?", [data["email"]], function(err, row, _fields) {
           if (row.length == 0) {
             db.query("INSERT INTO queue VALUES (?,?,?,?,?)", [data["email"], data["name"], data["latitude"], data["longitude"], Date.now()], function (_err, _row, _fields) {
-              logger.info("Emergency reported at lat:" + data["latitude"] + " lon:" + data["longitude"] + " by " + user.data["email"], req.ip, hrstart)
+              logger.info("Emergency reported at lat:" + data["latitude"] + " lon:" + data["longitude"] + " by " + user.data["email"], req.ip, hrstart);
             }) 
           } else {
             logger.info("Attempted to report emmergency by " + user.data["email"] + " but an emergency has already been logged", req.ip, hrstart)
           }
+          res.end();
         })
       }
     } else {
       res.sendStatus(401);
     }
-    res.end();
   })
 })
 
@@ -381,7 +379,6 @@ app.post('/request', function (req, res) {
     } else {
       res.sendStatus(401);
     }
-    res.end();
   })
 })
 
@@ -437,8 +434,9 @@ app.post('/update', function (req, res) {
           res.end();
         })
       })
+    } else {
+      res.sendStatus(401);
     }
-    res.end();
   })
 })
 
@@ -471,11 +469,11 @@ app.post('/cancel', function (req, res) {
     if (user.authenticated) {
       db.query("DELETE FROM queue WHERE email = ?", [data["email"]], function (_err, _row, _fields) {
         logger.info("Canceled emergency from " + data["email"]);
+        res.end();
       })
     } else {
       res.sendStatus(401);
     }
-    res.end();
   })
 })
 
@@ -521,7 +519,6 @@ app.post('/get-queue', function (req, res) {
     } else {
       res.sendStatus(401);
     }
-    res.end();
   })
 })
 
@@ -578,7 +575,6 @@ app.post('/request-emergency', function (req, res) {
     } else {
       res.sendStatus(401);
     }
-    res.end();
   })
 })
 
