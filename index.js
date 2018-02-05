@@ -223,6 +223,7 @@ app.post('/login', function (req, res) {
     } else {
       res.sendStatus(401);
     }
+    res.end();
   })
 })
 
@@ -282,6 +283,7 @@ app.post('/register', function (req, res) {
     } else {
       res.sendStatus(401);
     }
+    res.end();
   })
 })
 
@@ -327,7 +329,10 @@ app.post('/emergency', function (req, res) {
           }
         })
       }
+    } else {
+      res.sendStatus(401);
     }
+    res.end();
   })
 })
 
@@ -373,7 +378,10 @@ app.post('/request', function (req, res) {
         logger.info("Requested data from " + data["email"] + " by " + user.data["email"])
         res.json(row[0])
       })
+    } else {
+      res.sendStatus(401);
     }
+    res.end();
   })
 })
 
@@ -430,6 +438,7 @@ app.post('/update', function (req, res) {
         })
       })
     }
+    res.end();
   })
 })
 
@@ -462,9 +471,11 @@ app.post('/cancel', function (req, res) {
     if (user.authenticated) {
       db.query("DELETE FROM queue WHERE email = ?", [data["email"]], function (_err, _row, _fields) {
         logger.info("Canceled emergency from " + data["email"]);
-        res.end();
       })
+    } else {
+      res.sendStatus(401);
     }
+    res.end();
   })
 })
 
@@ -507,7 +518,10 @@ app.post('/get-queue', function (req, res) {
         res.json(jsonTable);
         logger.info("Updated queue of " + user.data["email"] + " with a total of " + rows + " items");
       })
+    } else {
+      res.sendStatus(401);
     }
+    res.end();
   })
 })
 
@@ -561,7 +575,10 @@ app.post('/request-emergency', function (req, res) {
         })
       })
       logger.info("Requested emergency data from " + data["email"] + " by " + user.data["email"]);
+    } else {
+      res.sendStatus(401);
     }
+    res.end();
   })
 })
 
