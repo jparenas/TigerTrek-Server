@@ -418,7 +418,7 @@ app.post('/update', function (req, res) {
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated && user.data["email"] == data["email"]) {
-      db.run("DELETE FROM user WHERE email = ?", [data["email"]], function (_err, _row, _fields) {
+      db.query("DELETE FROM user WHERE email = ?", [data["email"]], function (_err, _row, _fields) {
         names = ["height", "weight", "hair", "eye", "house", "room", "allergies", "medications", "contact"]
         for (name in names) {
           if (!data[names[name]]) {
@@ -429,7 +429,7 @@ app.post('/update', function (req, res) {
             }
           }
         }
-        db.run("INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)", [data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]], function (_err, _row, _fields) {
+        db.query("INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)", [data["email"], data["name"], data["height"], data["weight"], data["hair"], data["eye"], data["house"], data["room"], data["allergies"], data["medications"], data["contact"]], function (_err, _row, _fields) {
           logger.info("Updated information of " + data["email"]);
           res.end();
         })
