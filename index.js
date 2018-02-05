@@ -204,8 +204,8 @@ app.post('/login', function (req, res) {
   res.set("Connection", "close");
   authenticate(token, function (user) {
     if (user.authenticated) {
-      db.query("SELECT * FROM user WHERE email == ?", [user.data["email"]], function(err, row, _fields) {
-        db.query("SELECT * FROM security WHERE email == ?", [user.data["email"]], function(securityErr, securityRow, _securityFields) {
+      db.query("SELECT * FROM user WHERE email = ?", [user.data["email"]], function(err, row, _fields) {
+        db.query("SELECT * FROM security WHERE email = ?", [user.data["email"]], function(securityErr, securityRow, _securityFields) {
           if (row.length == 0 && securityRow.length == 0) {
             log("Registering as " + user.data["email"])
             res.json({"userRegistered": false});
@@ -317,7 +317,7 @@ app.post('/emergency', function (req, res) {
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
       if (data["latitude"] && data ["longitude"]) {
-        db.query("SELECT * FROM queue WHERE email == ?", [data["email"]], function(err, row, _fields) {
+        db.query("SELECT * FROM queue WHERE email = ?", [data["email"]], function(err, row, _fields) {
           if (row.length == 0) {
             db.query("INSERT INTO queue VALUES (?,?,?,?,?)", [data["email"], data["name"], data["latitude"], data["longitude"], Date.now()], function (_err, _row, _fields) {
               logger.info("Emergency reported at lat:" + data["latitude"] + " lon:" + data["longitude"] + " by " + user.data["email"], req.ip, hrstart)
@@ -369,7 +369,7 @@ app.post('/request', function (req, res) {
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
-      db.query("SELECT * FROM user WHERE email == ?", [data["email"]], function(err, row, _fields) {
+      db.query("SELECT * FROM user WHERE email = ?", [data["email"]], function(err, row, _fields) {
         logger.info("Requested data from " + data["email"] + " by " + user.data["email"])
         res.json(row[0])
       })
@@ -413,7 +413,7 @@ app.post('/update', function (req, res) {
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated && user.data["email"] == data["email"]) {
-      db.run("DELETE FROM user WHERE email == ?", [data["email"]], function (_err, _row, _fields) {
+      db.run("DELETE FROM user WHERE email = ?", [data["email"]], function (_err, _row, _fields) {
         names = ["height", "weight", "hair", "eye", "house", "room", "allergies", "medications", "contact"]
         for (name in names) {
           if (!data[names[name]]) {
@@ -553,8 +553,8 @@ app.post('/request-emergency', function (req, res) {
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
     if (user.authenticated) {
-      db.query("SELECT * FROM user WHERE email == ?", data["email"], function(err, row, _fields) {
-        db.query("SELECT * FROM queue WHERE email == ?", data["email"], function(queueErr, queueRow, _fields) {
+      db.query("SELECT * FROM user WHERE email = ?", data["email"], function(err, row, _fields) {
+        db.query("SELECT * FROM queue WHERE email = ?", data["email"], function(queueErr, queueRow, _fields) {
           row[0].latitude = queueRow[0].latitude;
           row[0].longitude = queueRow[0].longitude;
           res.json(row[0]);
