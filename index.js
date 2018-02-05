@@ -117,7 +117,7 @@ function authenticate(token, callback) {
       }
       if (error) {
         res.resume();
-        log(error)
+        logger.error(error)
         return;
       }
 
@@ -207,7 +207,7 @@ app.post('/login', function (req, res) {
       db.query("SELECT * FROM user WHERE email = ?", [user.data["email"]], function(err, row, _fields) {
         db.query("SELECT * FROM security WHERE email = ?", [user.data["email"]], function(securityErr, securityRow, _securityFields) {
           if (row.length == 0 && securityRow.length == 0) {
-            log("Registering as " + user.data["email"])
+            logger.info("Registering as " + user.data["email"])
             res.json({"userRegistered": false});
           } else if (row[0].email == user.data["email"] || securityRow[0].email == user.data["email"]){
             if (securityRow.length == 0) {
@@ -462,7 +462,7 @@ app.post('/cancel', function (req, res) {
     data = JSON.parse(Object.keys(req.body))
   } catch(err) {
     data = req.body
-    log(err)
+    logger.error(err)
   }
   res.set("Connection", "close");
   authenticate(data["id"], function (user) {
