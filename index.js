@@ -89,7 +89,7 @@ Returns:
 
 function authenticate(token, callback) {
   // for (cache in authenticationCache) {
-  for (var cache = 0; cache < authenticationCache.length; i++) {
+  for (var cache = 0; cache < authenticationCache.length; cache++) {
     if (token == authenticationCache[cache]["id"]) {
       logger.info("Using cached data for " + authenticationCache[cache]["email"])
       callback({
