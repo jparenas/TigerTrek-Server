@@ -12,7 +12,6 @@
     "helmet": "^3.8.0",
     "morgan": "^1.8.2",
     "mysql": "^2.15.0",
-    "sqlite3": "^3.1.13",
     "winston": "^2.3.1"
   },
   "scripts": {

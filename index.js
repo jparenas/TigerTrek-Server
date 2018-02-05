@@ -209,7 +209,7 @@ app.post('/login', function (req, res) {
           if (row.length == 0 && securityRow.length == 0) {
             log("Registering as " + user.data["email"])
             res.json({"userRegistered": false});
-          } else if (row.email == user.data["email"] || securityRow.email == user.data["email"]){
+          } else if (row[0].email == user.data["email"] || securityRow[0].email == user.data["email"]){
             if (securityRow.length == 0) {
               security = false
             } else {
